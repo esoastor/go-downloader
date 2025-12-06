@@ -1,7 +1,7 @@
 package downloader
 
 import (
-	"downloader/internal/utils"
+	"github.com/esoastor/go-downloader/internal/utils"
 	"path/filepath"
 	"sync"
 )
