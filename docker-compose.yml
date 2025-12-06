@@ -1,0 +1,36 @@
+services:
+  dev:
+    build:
+      context: .
+      target: dev
+      args:
+        GO_VERSION: "1.25"
+        GOLANGCI_LINT_VERSION: "v1.60.3"
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    working_dir: /workspace
+    volumes:
+      - .:/workspace:delegated
+      - gomod:/go/pkg/mod
+      - gocache:/go/build-cache
+    command: air -c ./.air.toml
+    ports:
+      - "8080:8080"     # HTTP приложения
+      - "40000:40000"   # Delve (при необходимости attach)
+    environment:
+      - CGO_ENABLED=1
+
+  lint:
+    build:
+      context: .
+      target: dev
+    working_dir: /workspace
+    volumes:
+      - .:/workspace:delegated
+      - gomod:/go/pkg/mod
+      - gocache:/go/build-cache
+    command: golangci-lint run ./...
+
+volumes:
+  gomod:
+  gocache:

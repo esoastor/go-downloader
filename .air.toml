@@ -1,0 +1,13 @@
+root = "."
+tmp_dir = "/home/dev/.air"
+
+[build]
+cmd = "go build -o /home/dev/.air/main ./cmd/downloader"
+bin = "/home/dev/.air/main"
+include_ext = ["go", "mod", "sum"]
+exclude_dir = ["tmp", "vendor", ".git"]
+delay = 200
+kill_delay = 500
+
+[log]
+time = true
