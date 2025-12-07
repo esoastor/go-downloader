@@ -18,12 +18,12 @@ func DownloadDir(dir Dir, parentDir string) {
 	wg.Wait()
 }
 
-func downloadWithWait[D Downloadable](d D, dir string, wg *sync.WaitGroup) {
+func downloadWithWait(d Downloadable, dir string, wg *sync.WaitGroup) {
 	defer wg.Done()
 	Download(d, dir)
 }
 
-func Download[D Downloadable](d D, dir string) {
+func Download(d Downloadable, dir string) {
 	body := utils.MakeGetRequest(d.GetUrl())
 	
 	utils.WriteContentToFile(body, dir + "/" + d.GetName())
