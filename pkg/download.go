@@ -10,8 +10,8 @@ import (
 
 type Downloader struct {
 	onBadResponseCallback func(resp *http.Response)
-	onDownloadSuccess func(d Downloadable)
-	onDownloadError func(d Downloadable, err error)
+	onDownloadSuccessCallback func(d Downloadable)
+	onDownloadErrorCallback func(d Downloadable, err error)
 }  
 
 func GetDownloader() Downloader {
@@ -28,14 +28,22 @@ func GetDownloader() Downloader {
 	}
 	downloader := Downloader{
 		onBadResponseCallback: badReqCall,
-		onDownloadSuccess: dwnSuccessCall,
-		onDownloadError: dwnErrorCall,
+		onDownloadSuccessCallback: dwnSuccessCall,
+		onDownloadErrorCallback: dwnErrorCall,
 	}
 	return downloader	
 }
 
 func (dwn *Downloader)OnBadResponse(callback func(resp *http.Response)) {
 	dwn.onBadResponseCallback = callback
+}
+
+func (dwn *Downloader)OnDownloadSuccess(callback func(d Downloadable)) {
+	dwn.onDownloadSuccessCallback = callback
+}
+
+func (dwn *Downloader)OnDownloadError(callback func(d Downloadable, err error)) {
+	dwn.onDownloadErrorCallback = callback
 }
 
 func (dwn *Downloader)DownloadDir(dir Dir, parentDir string) {
