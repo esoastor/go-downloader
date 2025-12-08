@@ -1,17 +1,16 @@
 package utils
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 )
 
-func WriteContentToFile(content []byte, filename string) {
+func WriteContentToFile(content []byte, filename string) error {
 	targetDir := filepath.Dir(filename)
 
 	mkdirErr := os.MkdirAll(targetDir, os.ModePerm)
 	if mkdirErr != nil {
-		log.Fatal(mkdirErr)
+		return mkdirErr
 	}
 
 	var file, error = os.OpenFile(
@@ -21,12 +20,14 @@ func WriteContentToFile(content []byte, filename string) {
 	)
 
 	if error != nil {
-		log.Fatal(error)
+		return error
 	}
 
 	file.Write(content)
 	if error := file.Close(); error != nil {
-		log.Fatal(error)
+		return error
 	}
+
+	return nil
 }
 

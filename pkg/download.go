@@ -10,13 +10,27 @@ import (
 
 type Downloader struct {
 	onBadResponseCallback func(resp *http.Response)
+	onDownloadSuccess func(d Downloadable)
+	onDownloadError func(d Downloadable, err error)
 }  
 
 func GetDownloader() Downloader {
-	downloader := Downloader{onBadResponseCallback: func(resp *http.Response) {
+	badReqCall := func(resp *http.Response) {
 		log.Printf("StatusCode: %v", resp.StatusCode)
 		panic("Bad response")
-	}}
+	}
+	dwnSuccessCall := func(d Downloadable) {
+		log.Printf("OK %v", d.GetUrl())
+	}
+	dwnErrorCall := func(d Downloadable, err error) {
+		log.Printf("ERROR: %v, %v", err, d.GetUrl())
+		panic("")
+	}
+	downloader := Downloader{
+		onBadResponseCallback: badReqCall,
+		onDownloadSuccess: dwnSuccessCall,
+		onDownloadError: dwnErrorCall,
+	}
 	return downloader	
 }
 
@@ -38,7 +52,13 @@ func (dwn *Downloader)DownloadDir(dir Dir, parentDir string) {
 func (dwn *Downloader)Download(d Downloadable, dir string) {
 	body := utils.MakeGetRequest(d.GetUrl(), dwn.onBadResponseCallback)
 	
-	utils.WriteContentToFile(body, dir + "/" + d.GetName())
+	error := utils.WriteContentToFile(body, dir + "/" + d.GetName())
+
+	if (error != nil) {
+		dwn.onDownloadError(d, error)
+	} else {
+		dwn.onDownloadSuccess(d)
+	}
 }
 
 func (dwn *Downloader)downloadWithWait(d Downloadable, dir string, wg *sync.WaitGroup) {
