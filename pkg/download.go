@@ -1,31 +1,47 @@
 package downloader
 
 import (
-	"github.com/esoastor/go-downloader/internal/utils"
+	"net/http"
 	"path/filepath"
 	"sync"
+	"log"
+	"github.com/esoastor/go-downloader/internal/utils"
 )
 
-func DownloadDir(dir Dir, parentDir string) {
+type Downloader struct {
+	onBadResponseCallback func(resp *http.Response)
+}  
+
+func GetDownloader() Downloader {
+	downloader := Downloader{onBadResponseCallback: func(resp *http.Response) {
+		log.Printf("StatusCode: %v", resp.StatusCode)
+		panic("Bad response")
+	}}
+	return downloader	
+}
+
+func (dwn *Downloader)OnBadResponse(callback func(resp *http.Response)) {
+	dwn.onBadResponseCallback = callback
+}
+
+func (dwn *Downloader)DownloadDir(dir Dir, parentDir string) {
 	finalDir := filepath.Join(parentDir, dir.Name)
-	
 	var wg sync.WaitGroup
 	
 	for _, file := range dir.Files {
 		wg.Add(1)
-		go downloadWithWait(file, finalDir, &wg)
+		go dwn.downloadWithWait(file, finalDir, &wg)
 	}
 	wg.Wait()
 }
 
-func downloadWithWait(d Downloadable, dir string, wg *sync.WaitGroup) {
-	defer wg.Done()
-	Download(d, dir)
-}
-
-func Download(d Downloadable, dir string) {
-	body := utils.MakeGetRequest(d.GetUrl())
+func (dwn *Downloader)Download(d Downloadable, dir string) {
+	body := utils.MakeGetRequest(d.GetUrl(), dwn.onBadResponseCallback)
 	
 	utils.WriteContentToFile(body, dir + "/" + d.GetName())
 }
 
+func (dwn *Downloader)downloadWithWait(d Downloadable, dir string, wg *sync.WaitGroup) {
+	defer wg.Done()
+	dwn.Download(d, dir)
+}
