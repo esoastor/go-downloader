@@ -63,9 +63,9 @@ func (dwn *Downloader)Download(d Downloadable, dir string) {
 	error := utils.WriteContentToFile(body, dir + "/" + d.GetName())
 
 	if (error != nil) {
-		dwn.onDownloadError(d, error)
+		dwn.onDownloadErrorCallback(d, error)
 	} else {
-		dwn.onDownloadSuccess(d)
+		dwn.onDownloadSuccessCallback(d)
 	}
 }
 
