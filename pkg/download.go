@@ -12,7 +12,7 @@ type Downloader struct {
 	onBadResponseCallback func(resp *http.Response)
 	onDownloadSuccessCallback func(d Downloadable)
 	onDownloadErrorCallback func(d Downloadable, err error)
-	onFileRecieveCallback func(file *[]byte)
+	onFileRecieveCallback func(file []byte) []byte 
 }  
 
 func GetDownloader() Downloader {
@@ -27,10 +27,14 @@ func GetDownloader() Downloader {
 		log.Printf("ERROR: %v, %v", err, d.GetUrl())
 		panic("")
 	}
+	onFileRecieveCall := func(file []byte) []byte {
+		return file
+	}
 	downloader := Downloader{
 		onBadResponseCallback: badReqCall,
 		onDownloadSuccessCallback: dwnSuccessCall,
 		onDownloadErrorCallback: dwnErrorCall,
+		onFileRecieveCallback: onFileRecieveCall,
 	}
 	return downloader	
 }
@@ -47,7 +51,7 @@ func (dwn *Downloader)OnDownloadError(callback func(d Downloadable, err error)) 
 	dwn.onDownloadErrorCallback = callback
 }
 
-func (dwn *Downloader)OnFileRecieve(callback func(file *[]byte)) {
+func (dwn *Downloader)OnFileRecieve(callback func(file []byte) []byte) {
 	dwn.onFileRecieveCallback = callback
 }
 
@@ -65,7 +69,7 @@ func (dwn *Downloader)DownloadDir(dir Dir, parentDir string) {
 func (dwn *Downloader)Download(d Downloadable, dir string) {
 	body := utils.MakeGetRequest(d.GetUrl(), dwn.onBadResponseCallback)
 	
-	dwn.onFileRecieveCallback(&body)
+	body = dwn.onFileRecieveCallback(body)
 
 	error := utils.WriteContentToFile(body, dir + "/" + d.GetName())
 
