@@ -12,6 +12,7 @@ type Downloader struct {
 	onBadResponseCallback func(resp *http.Response)
 	onDownloadSuccessCallback func(d Downloadable)
 	onDownloadErrorCallback func(d Downloadable, err error)
+	onFileRecieveCallbacl func(file []byte)
 }  
 
 func GetDownloader() Downloader {
@@ -46,6 +47,10 @@ func (dwn *Downloader)OnDownloadError(callback func(d Downloadable, err error)) 
 	dwn.onDownloadErrorCallback = callback
 }
 
+func (dwn *Downloader)OnFileRecieve(callback func(file []byte)) {
+	dwn.onFileRecieveCallback = callback
+}
+
 func (dwn *Downloader)DownloadDir(dir Dir, parentDir string) {
 	finalDir := filepath.Join(parentDir, dir.Name)
 	var wg sync.WaitGroup
@@ -60,6 +65,8 @@ func (dwn *Downloader)DownloadDir(dir Dir, parentDir string) {
 func (dwn *Downloader)Download(d Downloadable, dir string) {
 	body := utils.MakeGetRequest(d.GetUrl(), dwn.onBadResponseCallback)
 	
+	dwn.onFileRecieveCallbacl(body)
+
 	error := utils.WriteContentToFile(body, dir + "/" + d.GetName())
 
 	if (error != nil) {
